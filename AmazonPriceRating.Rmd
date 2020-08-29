@@ -1,0 +1,90 @@
+---
+title: "AmazonPriceRating"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+url <- 'https://www.amazon.com.tr/gp/bestsellers/books/ref=zg_bs_nav_0'
+webpage <- read_html(url)
+```
+
+```{r}
+#Fetch Rating
+rank_data <- html_nodes(webpage,'.a-icon-alt')
+rank_rate <- html_text(rank_data)
+head(rank_rate)
+View(rank_rate)
+```
+```{r}
+#Editing Rating
+x <- gsub(" / 5 yıldız","",rank_rate)
+head(x)
+View(x)
+```
+```{r}
+#Fetch Price
+price_data <- html_nodes(webpage,'.p13n-sc-price')
+price <- html_text(price_data)
+head(price)
+View(price)
+```
+```{r}
+#Editing Price
+y <- gsub("\u20ba","",price)
+head(y)
+View(y)
+```
+```{r}
+#Converting data to dataset
+all_data <- data.frame(x,y)
+View(all_data)
+```
+
+
+```{r}
+#1-Barplot data analysis for Rating
+#The highest score among the top 50 books is 4.8
+#4.4 points were taken only once
+table(all_data$x)
+
+barplot(table(all_data$x) , ylab = "Rating" , main = "Barplot of Numbers of Rating" , col = "red")
+```
+
+```{r}
+#2-Barplot data analysis for Price and Rating
+#How many books are bought for how many TL and their evaluations are like this
+#The book with the lowest score among the 50 best selling books is sold at the highest price.
+counts <- table(all_data$x, all_data$y)
+  barplot(counts, main="Price - Rating",
+  xlab="Price",col=c("white","gray","yellow","blue","orange","purple","black"),
+  legend = rownames(counts))
+```
+```{r}
+#3-Frequency analysis of Rating
+docs <- Corpus(VectorSource(x))
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+aa <- sort(rowSums(m),decreasing = TRUE)
+ratingVal <- data.frame(word=names(aa),freq=aa)
+head(ratingVal)
+```
+
+
+```{r}
+#4-Frequency analysis of Price
+docs <- Corpus(VectorSource(y))
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+aa <- sort(rowSums(m),decreasing = TRUE)
+priceVal <- data.frame(word=names(aa),freq=aa)
+head(priceVal)
+```
+
+```{r}
+#5-Barplot for price (sort)
+barplot(priceVal[,] $freq , names.arg = priceVal[,] $word)
+```
+```{r}
+#6-Barplot for rating (sort)
+barplot(ratingVal[,] $freq , names.arg = ratingVal[,] $word)
+```
